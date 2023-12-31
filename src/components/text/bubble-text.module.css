@@ -1,0 +1,25 @@
+.hoverText {
+  transition: all 0.3s ease;
+}
+
+.hoverText:hover {
+  font-weight: 900;
+}
+
+/* To the right */
+.hoverText:hover + .hoverText {
+  font-weight: 600;
+}
+
+.hoverText:hover + .hoverText + .hoverText {
+  font-weight: 300;
+}
+
+/* To the left */
+.hoverText:has(+ .hoverText:hover) {
+  font-weight: 600;
+}
+
+.hoverText:has(+ .hoverText + .hoverText:hover) {
+  font-weight: 300;
+}

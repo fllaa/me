@@ -10,6 +10,11 @@ import {
 import dynamic from "next/dynamic";
 import { type AnimationScope, useAnimate, motion } from "framer-motion";
 import { FiMenu, FiArrowUpRight } from "react-icons/fi";
+import { TbHomeMove } from "react-icons/tb";
+import { useShallow } from "zustand/react/shallow";
+import clsx from "clsx";
+
+import useSectionStore, { Section } from "@me/stores/section";
 
 const DarkModeToggle = dynamic(
   () => import("@me/components/toggle/dark-mode-toggle"),
@@ -39,6 +44,12 @@ export default function TopNavbar() {
     }
   };
 
+  const scrollIntoHero = () => {
+    if (!hovered) return;
+    const el: HTMLElement = document.querySelector("#hero")!;
+    el.scrollIntoView({ behavior: "smooth" });
+  };
+
   useEffect(() => {
     navRef.current?.addEventListener("mousemove", handleMouseMove);
 
@@ -49,6 +60,7 @@ export default function TopNavbar() {
   return (
     <nav
       ref={navRef}
+      onClick={scrollIntoHero}
       onMouseLeave={() => setHovered(false)}
       style={{
         cursor: hovered ? "none" : "auto",
@@ -96,26 +108,61 @@ const Cursor = ({
 };
 
 const Logo = () => (
-  <span className="dark:text-copy-dark pointer-events-none relative left-0 top-[50%] z-10 text-4xl font-black text-copy mix-blend-overlay md:absolute md:left-[50%] md:-translate-x-[50%] md:-translate-y-[50%]">
+  <span className="pointer-events-none relative left-0 top-[50%] z-10 text-4xl font-black text-copy mix-blend-overlay md:absolute md:left-[50%] md:-translate-x-[50%] md:-translate-y-[50%] dark:text-copy-dark">
     flla.
   </span>
 );
 
-const Links = () => (
-  <div className="hidden items-center gap-2 md:flex">
-    <GlassLink text="About" />
-    <GlassLink text="Experiences" />
-    <GlassLink text="Projects" />
-  </div>
-);
-
-const GlassLink = ({ text }: { text: string }) => {
+const Links = () => {
+  const section = useSectionStore(useShallow((state) => state.section));
   return (
-    <button className="group relative scale-100 overflow-hidden rounded-lg px-4 py-2 transition-transform hover:scale-105 active:scale-95">
-      <span className="dark:text-copy-dark/90 relative z-10 text-copy/90 transition-colors group-hover:text-black dark:group-hover:text-white">
+    <div className="hidden items-center gap-2 md:flex">
+      <GlassLink id="about" text="About" isActive={section === Section.About} />
+      <GlassLink
+        id="experiences"
+        text="Experiences"
+        isActive={section === Section.Experiences}
+      />
+      <GlassLink id="projects" text="Projects" isActive={section === Section.Projects} />
+    </div>
+  );
+};
+
+const GlassLink = ({
+  id,
+  text,
+  isActive,
+}: {
+  id: string;
+  text: string;
+  isActive?: boolean;
+}) => {
+  const scrollIntoSection = () => {
+    const el = document.querySelector(`#${id}`);
+    if (!el) return;
+    el.scrollIntoView({ behavior: "smooth" });
+  }
+
+  return (
+    <button className="group relative scale-100 overflow-hidden rounded-lg px-4 py-2 transition-transform hover:scale-105 active:scale-95" onClick={scrollIntoSection}>
+      <span
+        className={clsx(
+          "relative z-10 transition-colors",
+          isActive
+            ? "text-copy-dark group-hover:text-white"
+            : "text-copy/90 group-hover:text-black dark:text-copy-dark/90 dark:group-hover:text-white",
+        )}
+      >
         {text}
       </span>
       <span className="absolute inset-0 z-0 bg-gradient-to-br from-white/5 via-white/5 to-black/5 opacity-0 transition-opacity group-hover:opacity-100 dark:from-white/20 dark:to-white/5" />
+      {isActive && (
+        <motion.span
+          layoutId="pill-tab"
+          transition={{ type: "spring", duration: 0.5 }}
+          className="absolute inset-0 z-0 rounded-md bg-gradient-to-r from-secondary to-primary"
+        ></motion.span>
+      )}
     </button>
   );
 };

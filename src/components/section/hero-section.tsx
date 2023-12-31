@@ -1,7 +1,9 @@
 "use client";
 
 import React, { type MouseEventHandler, type ReactNode, useRef } from "react";
+import { InView } from "react-intersection-observer";
 import { useAnimate, motion } from "framer-motion";
+import { useShallow } from "zustand/react/shallow";
 
 import {
   FaAws,
@@ -40,7 +42,12 @@ import {
 } from "react-icons/si";
 import type { IconType } from "react-icons";
 
+import useSectionStore, { Section } from "@me/stores/section";
+
 export default function HeroSection() {
+  const { setSection } = useSectionStore(
+    useShallow((state) => ({ setSection: state.setSection })),
+  );
   return (
     <MouseImageTrail
       renderImageBuffer={50}
@@ -79,32 +86,45 @@ export default function HeroSection() {
         SiVisualstudiocode,
       ]}
     >
-      <section className="dark:bg-background-dark h-screen bg-background">
+      <InView
+        as="section"
+        id="hero"
+        className="h-screen bg-background dark:bg-background-dark"
+        rootMargin="-256px"
+        onChange={(inView) => inView && setSection(Section.Hero)}
+      >
         <Copy />
         <WatermarkWrapper />
-      </section>
+      </InView>
     </MouseImageTrail>
   );
 }
 
 const Copy = () => {
+  const scrollIntoAbout = () => {
+    const el: HTMLElement = document.querySelector("#about")!;
+    el.scrollIntoView({ behavior: "smooth" });
+  };
+
   return (
     <div className="absolute bottom-0 left-0 right-0 z-[999999]">
       <div className="mx-auto flex max-w-7xl items-end justify-between p-4 md:p-8">
         <div>
-          <h1 className="dark:text-copy-dark/60 mb-6 max-w-4xl text-6xl font-black leading-[1.1] text-copy md:text-8xl">
+          <h1 className="mb-6 max-w-4xl text-6xl font-extrabold leading-[1.1] text-copy md:text-8xl dark:text-copy-dark/60">
             Crafting{" "}
             <span className="text-primary dark:text-foreground">
               Elegant Code
             </span>{" "}
             with Passion
           </h1>
-          <p className="dark:text-copy-dark/60 max-w-xl text-copy md:text-lg">
+          <p className="max-w-xl text-copy md:text-lg dark:text-copy-dark/60">
             Hi 👋, My name is Fallah Andy Prakasa. I'm a Software Engineer who
             loves to build things with code.
           </p>
         </div>
-        <FiArrowDownCircle className="hidden text-8xl text-secondary md:block dark:text-secondary-content" />
+        <button onClick={scrollIntoAbout}>
+          <FiArrowDownCircle className="hidden text-8xl text-secondary md:block dark:text-secondary-content" />
+        </button>
       </div>
     </div>
   );
@@ -128,12 +148,12 @@ const WatermarkWrapper = () => {
 const Watermark = ({ reverse, text }: { reverse?: boolean; text: string }) => (
   <div className="flex -translate-y-12 select-none overflow-hidden">
     <TranslateWrapper reverse={reverse}>
-      <span className="text-copy-dark-light w-fit whitespace-nowrap text-[20vmax] font-black uppercase leading-[0.75] dark:text-copy">
+      <span className="w-fit whitespace-nowrap text-[20vmax] font-black uppercase leading-[0.75] text-copy-dark-light dark:text-copy">
         {text}
       </span>
     </TranslateWrapper>
     <TranslateWrapper reverse={reverse}>
-      <span className="text-copy-dark-light ml-48 w-fit whitespace-nowrap text-[20vmax] font-black uppercase leading-[0.75] dark:text-copy">
+      <span className="ml-48 w-fit whitespace-nowrap text-[20vmax] font-black uppercase leading-[0.75] text-copy-dark-light dark:text-copy">
         {text}
       </span>
     </TranslateWrapper>
@@ -258,7 +278,7 @@ const MouseImageTrail = ({
   return (
     <div
       ref={scope}
-      className="relative overflow-hidden"
+      className="relative snap-center overflow-hidden"
       onMouseMove={handleMouseMove}
     >
       {children}

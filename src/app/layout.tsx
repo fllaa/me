@@ -12,7 +12,7 @@ const inter = Inter({
 });
 
 const poppins = Poppins({
-  weight: ["400", "500", "600", "700"],
+  weight: ["400", "500", "600", "700", "800", "900"],
   subsets: ["latin"],
   variable: "--font-sans",
 });
@@ -31,7 +31,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`dark:bg-background-dark dark:text-copy-dark bg-backgroundtext-copy font-sans transition-colors duration-300 ${inter.variable} ${poppins.variable}`}
+        className={`bg-backgroundtext-copy font-sans transition-colors duration-300 dark:bg-background-dark dark:text-copy-dark ${inter.variable} ${poppins.variable}`}
       >
         <TRPCReactProvider cookies={cookies().toString()}>
           <TopNavbar />
