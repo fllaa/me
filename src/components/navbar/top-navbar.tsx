@@ -10,7 +10,6 @@ import {
 import dynamic from "next/dynamic";
 import { type AnimationScope, useAnimate, motion } from "framer-motion";
 import { FiMenu, FiArrowUpRight } from "react-icons/fi";
-import { TbHomeMove } from "react-icons/tb";
 import { useShallow } from "zustand/react/shallow";
 import clsx from "clsx";
 
@@ -27,6 +26,8 @@ export default function TopNavbar() {
 
   const [scope, animate] = useAnimate<HTMLDivElement>();
   const navRef = useRef<HTMLDivElement | null>(null);
+
+  const section = useSectionStore(useShallow((state) => state.section));
 
   const handleMouseMove = ({ offsetX, offsetY, target }: MouseEvent) => {
     // @ts-expect-error - target can be null
@@ -65,12 +66,17 @@ export default function TopNavbar() {
       style={{
         cursor: hovered ? "none" : "auto",
       }}
-      className="glass-nav fixed left-0 right-0 top-0 z-10 mx-auto max-w-6xl overflow-hidden border-[1px] border-black/10 bg-gradient-to-br from-white/5 via-white/5 to-black/5 backdrop-blur md:left-6 md:right-6 md:top-6 md:rounded-2xl dark:border-white/10 dark:from-white/20 dark:to-white/5"
+      className={clsx(
+        "glass-nav fixed left-0 right-0 top-0 z-10 mx-auto max-w-6xl overflow-hidden border-[1px] backdrop-blur transition-all duration-500 md:left-6 md:right-6 md:top-6 md:rounded-2xl",
+        section === Section.Hero
+          ? "border-transparent bg-transparent"
+          : "border-black/10 bg-gradient-to-br from-white/5 via-white/5 to-black/5 dark:border-white/10 dark:from-white/20 dark:to-white/5",
+      )}
     >
       <div className="glass-nav flex items-center justify-between px-5 py-5">
         <Cursor hovered={hovered} scope={scope} />
 
-        <Links />
+        <Links section={section} />
 
         <Logo />
 
@@ -113,8 +119,7 @@ const Logo = () => (
   </span>
 );
 
-const Links = () => {
-  const section = useSectionStore(useShallow((state) => state.section));
+const Links = ({ section }: { section: Section }) => {
   return (
     <div className="hidden items-center gap-2 md:flex">
       <GlassLink id="about" text="About" isActive={section === Section.About} />
@@ -123,7 +128,11 @@ const Links = () => {
         text="Experiences"
         isActive={section === Section.Experiences}
       />
-      <GlassLink id="projects" text="Projects" isActive={section === Section.Projects} />
+      <GlassLink
+        id="projects"
+        text="Projects"
+        isActive={section === Section.Projects}
+      />
     </div>
   );
 };
@@ -141,10 +150,13 @@ const GlassLink = ({
     const el = document.querySelector(`#${id}`);
     if (!el) return;
     el.scrollIntoView({ behavior: "smooth" });
-  }
+  };
 
   return (
-    <button className="group relative scale-100 overflow-hidden rounded-lg px-4 py-2 transition-transform hover:scale-105 active:scale-95" onClick={scrollIntoSection}>
+    <button
+      className="group relative scale-100 overflow-hidden rounded-lg px-4 py-2 transition-transform hover:scale-105 active:scale-95"
+      onClick={scrollIntoSection}
+    >
       <span
         className={clsx(
           "relative z-10 transition-colors",
