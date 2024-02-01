@@ -1,3 +1,79 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+.shuriken-loader {
+  @apply grid aspect-square w-[80px] text-primary dark:text-primary-content;
+  -webkit-mask: radial-gradient(circle 5px, #0000 90%, #000);
+  animation: l3 1.5s infinite linear;
+}
+.shuriken-loader:before,
+.shuriken-loader:after {
+  content: "";
+  grid-area: 1/1;
+  background:
+    radial-gradient(farthest-side at bottom left, currentColor 94%, #0000) top
+      left,
+    radial-gradient(farthest-side at top right, currentColor 94%, #0000) bottom
+      right;
+  background-size: 63% 50%;
+  background-repeat: no-repeat;
+  -webkit-mask:
+    radial-gradient(65% 110% at bottom left, #0000 94%, #000) top left,
+    radial-gradient(65% 110% at top right, #0000 94%, #000) bottom right;
+  -webkit-mask-size: 62% 50%;
+  -webkit-mask-repeat: no-repeat;
+}
+.shuriken-loader:after {
+  transform: rotate(90deg);
+}
+@keyframes l3 {
+  100% {
+    transform: rotate(1turn);
+  }
+}
+
+.text-loader {
+  @apply w-fit overflow-hidden pb-[5px] font-mono text-2xl font-bold text-primary/10 dark:text-primary-content/10;
+  text-shadow:
+    0 0 0 #63593f,
+    10ch 0 0 #63593f;
+  background: linear-gradient(#63593f 0 0) bottom left/0% 3px no-repeat;
+  animation: l14 1.5s infinite;
+}
+:is(:where(.dark) .text-loader) {
+  text-shadow:
+    0 0 0 #dbd5c6,
+    10ch 0 0 #dbd5c6;
+  background: linear-gradient(#dbd5c6 0 0) bottom left/0% 3px no-repeat;
+  animation: l14-dark 1.5s infinite;
+}
+.text-loader:before {
+  content: "Loading...";
+}
+@keyframes l14 {
+  80% {
+    text-shadow:
+      0 0 0 #63593f,
+      10ch 0 0 #63593f;
+    background-size: 100% 3px;
+  }
+  100% {
+    text-shadow:
+      -10ch 0 0 #63593f,
+      0 0 0 #63593f;
+  }
+}
+@keyframes l14-dark {
+  80% {
+    text-shadow:
+      0 0 0 #dbd5c6,
+      10ch 0 0 #dbd5c6;
+    background-size: 100% 3px;
+  }
+  100% {
+    text-shadow:
+      -10ch 0 0 #dbd5c6,
+      0 0 0 #dbd5c6;
+  }
+}
