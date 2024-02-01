@@ -14,11 +14,13 @@ import { useShallow } from "zustand/react/shallow";
 import clsx from "clsx";
 
 import useSectionStore, { Section } from "@me/stores/section";
+import { capitalize } from "@me/utils/string";
 
 const DarkModeToggle = dynamic(
   () => import("@me/components/toggle/dark-mode-toggle"),
   { ssr: false },
 );
+const sections = Object.values(Section).filter((s) => s !== Section.Hero);
 
 export default function TopNavbar() {
   const [hovered, setHovered] = useState(false);
@@ -122,17 +124,14 @@ const Logo = () => (
 const Links = ({ section }: { section: Section }) => {
   return (
     <div className="hidden items-center gap-2 md:flex">
-      <GlassLink id="about" text="About" isActive={section === Section.About} />
-      <GlassLink
-        id="experiences"
-        text="Experiences"
-        isActive={section === Section.Experiences}
-      />
-      <GlassLink
-        id="projects"
-        text="Projects"
-        isActive={section === Section.Projects}
-      />
+      {sections.map((s) => (
+        <GlassLink
+          key={s}
+          id={s}
+          text={capitalize(s)}
+          isActive={s === section}
+        />
+      ))}
     </div>
   );
 };
@@ -217,9 +216,9 @@ const MobileMenu = ({ menuOpen }: { menuOpen: boolean }) => {
     >
       <div className="flex items-center justify-between px-4 pb-4">
         <div className="flex items-center gap-4">
-          <TextLink text="About" />
-          <TextLink text="Experiences" />
-          <TextLink text="Projects" />
+          {sections.map((s) => (
+            <TextLink key={s} text={capitalize(s)} />
+          ))}
         </div>
         <DarkModeToggle />
       </div>

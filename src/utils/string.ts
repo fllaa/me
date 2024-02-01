@@ -9,3 +9,6 @@ export const getRandomQuote = () => {
   ];
   return quotes[Math.floor(Math.random() * quotes.length)]!;
 };
+
+export const capitalize = (str: string) =>
+  str.charAt(0).toUpperCase() + str.slice(1);
