@@ -1,6 +1,6 @@
 import "@me/styles/globals.css";
 
-import { Inter, Poppins } from "next/font/google";
+import { Inter, Plus_Jakarta_Sans } from "next/font/google";
 import { cookies } from "next/headers";
 
 import { TRPCReactProvider } from "@me/trpc/react";
@@ -12,8 +12,8 @@ const inter = Inter({
   variable: "--font-serif",
 });
 
-const poppins = Poppins({
-  weight: ["400", "500", "600", "700", "800", "900"],
+const plusJakartaSans = Plus_Jakarta_Sans({
+  weight: ["400", "500", "600", "700", "800"],
   subsets: ["latin"],
   variable: "--font-sans",
 });
@@ -32,7 +32,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`overflow-x-hidden bg-background font-sans text-copy transition-colors duration-300 dark:bg-background-dark dark:text-copy-dark ${inter.variable} ${poppins.variable}`}
+        className={`overflow-x-hidden bg-background font-sans text-copy transition-colors duration-300 dark:bg-background-dark dark:text-copy-dark ${inter.variable} ${plusJakartaSans.variable}`}
       >
         <TRPCReactProvider cookies={cookies().toString()}>
           <TopNavbar />
