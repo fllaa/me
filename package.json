@@ -19,6 +19,7 @@
     "@trpc/next": "^10.43.6",
     "@trpc/react-query": "^10.43.6",
     "@trpc/server": "^10.43.6",
+    "apisauce": "^3.0.1",
     "clsx": "^2.1.0",
     "drizzle-orm": "^0.28.5",
     "framer-motion": "^10.16.16",

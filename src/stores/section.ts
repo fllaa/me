@@ -3,6 +3,7 @@ import { create } from "zustand";
 export enum Section {
   Hero = "hero",
   About = "about",
+  Stats = "stats",
   Experiences = "experiences",
   Projects = "projects",
 }
