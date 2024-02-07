@@ -61,7 +61,7 @@ export default function StatsSection({
             <SquishyCard
               icon={SiWakatime}
               title="Wakatime Stats"
-              value={`${Math.round(parseFloat(wakaAllTimeData.data.decimal))}`}
+              value={Math.round(parseFloat(wakaAllTimeData.data.decimal))}
               description={`Coding Hours since ${wakaAllTimeData.data.range.start_text}`}
               bg="C"
             />

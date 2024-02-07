@@ -1,11 +1,14 @@
+"use client";
+
 import { motion } from "framer-motion";
-import { SiGithub } from "react-icons/si";
+import CountUp from "react-countup";
+import { InView } from "react-intersection-observer";
 import type { IconType } from "react-icons";
 
 export interface SquishyCardProps {
   icon: IconType;
   title: string;
-  value: string | number;
+  value: number;
   description: string;
   bg?: "A" | "B" | "C";
 }
@@ -52,7 +55,13 @@ const SquishyCard = ({
           }}
           className="my-2 block origin-top-left font-mono text-9xl font-black leading-[1.2]"
         >
-          {value}
+          <CountUp end={value} redraw>
+            {({ countUpRef, start }) => (
+              <InView onChange={start} triggerOnce>
+                <span ref={countUpRef} />
+              </InView>
+            )}
+          </CountUp>
         </motion.span>
         <p>{description}</p>
       </div>
