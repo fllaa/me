@@ -9,6 +9,7 @@ interface Message {
   content: string;
   isUser: boolean;
   timestamp: Date;
+  isStreaming?: boolean;
 }
 
 const ChatInterface = () => {
@@ -57,6 +58,32 @@ const ChatInterface = () => {
     return "That's an interesting question! I'm here to help you learn more about my background as a Software Engineer. You can ask me about:\n\n• My technical skills and experience\n• Projects I've worked on\n• How to get in touch\n• My career journey\n\nWhat specific aspect would you like to explore?";
   };
 
+  const streamResponse = async (content: string, messageId: string) => {
+    const words = content.split(' ');
+    let currentContent = '';
+    
+    for (let i = 0; i < words.length; i++) {
+      currentContent += (i > 0 ? ' ' : '') + words[i];
+      
+      setMessages(prev => prev.map(msg => 
+        msg.id === messageId 
+          ? { ...msg, content: currentContent, isStreaming: i < words.length - 1 }
+          : msg
+      ));
+      
+      // Random delay between 30-100ms for more natural typing
+      const delay = Math.random() * 70 + 30;
+      await new Promise(resolve => setTimeout(resolve, delay));
+    }
+    
+    // Mark streaming as complete
+    setMessages(prev => prev.map(msg => 
+      msg.id === messageId 
+        ? { ...msg, isStreaming: false }
+        : msg
+    ));
+  };
+
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
@@ -82,17 +109,24 @@ const ChatInterface = () => {
     setIsTyping(true);
 
     // Simulate AI thinking time
-    setTimeout(() => {
-      const aiResponse: Message = {
-        id: (Date.now() + 1).toString(),
-        content: getAIResponse(messageToSend),
+    setTimeout(async () => {
+      const aiMessageId = (Date.now() + 1).toString();
+      const responseContent = getAIResponse(messageToSend);
+      
+      const aiMessage: Message = {
+        id: aiMessageId,
+        content: '',
         isUser: false,
         timestamp: new Date(),
+        isStreaming: true,
       };
       
-      setMessages(prev => [...prev, aiResponse]);
+      setMessages(prev => [...prev, aiMessage]);
       setIsTyping(false);
-    }, 1500);
+      
+      // Start streaming the response
+      await streamResponse(responseContent, aiMessageId);
+    }, 1000);
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -143,7 +177,12 @@ const ChatInterface = () => {
                   : 'bg-white/10 border-white/20 text-gray-100'
               }`}
             >
-              <p className="whitespace-pre-line leading-relaxed">{message.content}</p>
+              <div className="whitespace-pre-line leading-relaxed">
+                {message.content}
+                {message.isStreaming && (
+                  <span className="inline-block w-2 h-5 bg-blue-400 ml-1 animate-pulse" />
+                )}
+              </div>
               <div className="text-xs opacity-60 mt-2">
                 {message.timestamp.toLocaleTimeString()}
               </div>
