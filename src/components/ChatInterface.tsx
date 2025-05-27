@@ -129,10 +129,10 @@ const ChatInterface = () => {
 							<MessageSquare className="w-8 h-8 text-blue-400" />
 						</div>
 						<h1 className="text-3xl font-bold mb-2 bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
-							Hi, I'm John Doe
+							Hi, I'm Fallah Andy Prakasa
 						</h1>
 						<p className="text-gray-400 text-lg mb-8">
-							Software Engineer & Full-Stack Developer
+							Software Engineer & Cloud Engineer
 						</p>
 						<p className="text-gray-500 max-w-md mx-auto">
 							Ask me anything about my experience, projects, or how we can work
