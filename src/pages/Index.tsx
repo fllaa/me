@@ -12,7 +12,7 @@ const Index = () => {
 			</div>
 
 			{/* Navigation */}
-			<Navigation />
+			{/* <Navigation /> */}
 
 			{/* Main Content */}
 			<main className="relative z-10 pt-20 md:pt-24 h-screen flex flex-col">
