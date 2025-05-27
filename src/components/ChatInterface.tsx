@@ -1,23 +1,37 @@
 import type React from "react";
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { API } from "@/lib/api";
+import { useChatStore, type Message } from "@/hooks/stores/use-chat-stores";
 import { MessageSquare, Send, User, Bot } from "lucide-react";
-
-interface Message {
-	id: string;
-	content: string;
-	isUser: boolean;
-	timestamp: Date;
-	isStreaming?: boolean;
-}
+import Markdown from "react-markdown";
+import { useShallow } from "zustand/react/shallow";
 
 const ChatInterface = () => {
-	const [messages, setMessages] = useState<Message[]>([]);
+	const {
+		messages,
+		sessionId,
+		disableStreamMessage,
+		pushMessage,
+		streamMessage,
+		setSessionId,
+		reset,
+	} = useChatStore(
+		useShallow((state) => ({
+			messages: state.messages,
+			sessionId: state.sessionId,
+			disableStreamMessage: state.disableStreamMessage,
+			pushMessage: state.pushMessage,
+			streamMessage: state.streamMessage,
+			setSessionId: state.setSessionId,
+			reset: state.reset,
+		})),
+	);
 	const [inputValue, setInputValue] = useState("");
 	const [isTyping, setIsTyping] = useState(false);
 	const messagesEndRef = useRef<HTMLDivElement>(null);
-	const [showSuggestions, setShowSuggestions] = useState(true);
+	const showSuggestions = useMemo(() => messages.length === 0, [messages]);
 
 	const suggestions = [
 		"What are your tech stacks?",
@@ -28,54 +42,16 @@ const ChatInterface = () => {
 		"What programming languages do you know?",
 	];
 
-	const getAIResponse = (userMessage: string): string => {
-		const message = userMessage.toLowerCase();
+	const getAIResponse = async (userMessage: string): Promise<string> => {
+		const api = new API();
+		const data = await api.chatCompletions({
+			prompt: userMessage,
+			sessionId: sessionId ?? undefined,
+		});
 
-		if (
-			message.includes("tech stack") ||
-			message.includes("technology") ||
-			message.includes("programming language")
-		) {
-			return "I work with a diverse tech stack including:\n\n**Frontend:** React, Next.js, TypeScript, Tailwind CSS\n**Backend:** Node.js, Python, Express.js\n**Database:** PostgreSQL, MongoDB, Redis\n**Cloud:** AWS, Docker, Kubernetes\n**Tools:** Git, VS Code, Figma\n\nI'm always learning new technologies and adapting to project requirements!";
-		}
+		setSessionId(data.session_id);
 
-		if (
-			message.includes("project") ||
-			message.includes("work") ||
-			message.includes("portfolio")
-		) {
-			return "I've worked on several exciting projects:\n\n🚀 **E-commerce Platform** - Full-stack web app with React & Node.js\n💼 **Task Management SaaS** - Built with Next.js and PostgreSQL\n🤖 **AI Chat Bot** - Python-based NLP application\n📱 **Mobile Weather App** - React Native with real-time APIs\n\nWould you like to know more about any specific project?";
-		}
-
-		if (
-			message.includes("contact") ||
-			message.includes("hire") ||
-			message.includes("email")
-		) {
-			return "I'd love to connect with you! Here are the best ways to reach me:\n\n📧 **Email:** john.doe@example.com\n💼 **LinkedIn:** linkedin.com/in/johndoe\n🐱 **GitHub:** github.com/johndoe\n📱 **Phone:** +1 (555) 123-4567\n\nFeel free to reach out for collaborations, job opportunities, or just to chat about tech!";
-		}
-
-		if (
-			message.includes("experience") ||
-			message.includes("background") ||
-			message.includes("career")
-		) {
-			return "I'm a passionate Software Engineer with 5+ years of experience:\n\n🏢 **Senior Frontend Developer** at TechCorp (2022-Present)\n⚡ **Full-Stack Developer** at StartupXYZ (2020-2022)\n🎓 **Junior Developer** at WebAgency (2019-2020)\n\nI specialize in building scalable web applications and have led teams of 3-5 developers. My focus is on clean code, user experience, and modern development practices.";
-		}
-
-		if (message.includes("resume") || message.includes("cv")) {
-			return "You can download my resume to get a complete overview of my background:\n\n📄 **[Download Resume PDF]** - Includes detailed work experience, education, and skills\n\nThe resume covers my 5+ years in software development, key projects, certifications, and technical expertise. It's always up-to-date with my latest achievements!";
-		}
-
-		if (
-			message.includes("hello") ||
-			message.includes("hi") ||
-			message.includes("hey")
-		) {
-			return "Hello there! 👋 Welcome to my portfolio!\n\nI'm a passionate Software Engineer who loves building amazing digital experiences. I'm here to answer any questions you might have about my work, experience, or how we could collaborate.\n\nWhat would you like to know about me?";
-		}
-
-		return "That's an interesting question! I'm here to help you learn more about my background as a Software Engineer. You can ask me about:\n\n• My technical skills and experience\n• Projects I've worked on\n• How to get in touch\n• My career journey\n\nWhat specific aspect would you like to explore?";
+		return data.text;
 	};
 
 	const streamResponse = async (content: string, messageId: string) => {
@@ -85,17 +61,7 @@ const ChatInterface = () => {
 		for (let i = 0; i < words.length; i++) {
 			currentContent += (i > 0 ? " " : "") + words[i];
 
-			setMessages((prev) =>
-				prev.map((msg) =>
-					msg.id === messageId
-						? {
-								...msg,
-								content: currentContent,
-								isStreaming: i < words.length - 1,
-							}
-						: msg,
-				),
-			);
+			streamMessage(messageId, i, words, currentContent);
 
 			// Random delay between 30-100ms for more natural typing
 			const delay = Math.random() * 70 + 30;
@@ -103,11 +69,7 @@ const ChatInterface = () => {
 		}
 
 		// Mark streaming as complete
-		setMessages((prev) =>
-			prev.map((msg) =>
-				msg.id === messageId ? { ...msg, isStreaming: false } : msg,
-			),
-		);
+		disableStreamMessage(messageId);
 	};
 
 	const scrollToBottom = () => {
@@ -126,33 +88,28 @@ const ChatInterface = () => {
 			id: Date.now().toString(),
 			content: messageToSend,
 			isUser: true,
-			timestamp: new Date(),
+			timestamp: new Date().toISOString(),
 		};
 
-		setMessages((prev) => [...prev, userMessage]);
+		pushMessage(userMessage);
 		setInputValue("");
-		setShowSuggestions(false);
 		setIsTyping(true);
+		const aiMessageId = (Date.now() + 1).toString();
+		const responseContent = await getAIResponse(messageToSend);
 
-		// Simulate AI thinking time
-		setTimeout(async () => {
-			const aiMessageId = (Date.now() + 1).toString();
-			const responseContent = getAIResponse(messageToSend);
+		const aiMessage: Message = {
+			id: aiMessageId,
+			content: "",
+			isUser: false,
+			timestamp: new Date().toISOString(),
+			isStreaming: true,
+		};
 
-			const aiMessage: Message = {
-				id: aiMessageId,
-				content: "",
-				isUser: false,
-				timestamp: new Date(),
-				isStreaming: true,
-			};
+		pushMessage(aiMessage);
+		setIsTyping(false);
 
-			setMessages((prev) => [...prev, aiMessage]);
-			setIsTyping(false);
-
-			// Start streaming the response
-			await streamResponse(responseContent, aiMessageId);
-		}, 1000);
+		// Start streaming the response
+		await streamResponse(responseContent, aiMessageId);
 	};
 
 	const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -205,13 +162,13 @@ const ChatInterface = () => {
 							}`}
 						>
 							<div className="whitespace-pre-line leading-relaxed">
-								{message.content}
+								<Markdown>{message.content}</Markdown>
 								{message.isStreaming && (
 									<span className="inline-block w-2 h-5 bg-blue-400 ml-1 animate-pulse" />
 								)}
 							</div>
 							<div className="text-xs opacity-60 mt-2">
-								{message.timestamp.toLocaleTimeString()}
+								{new Date(message.timestamp).toLocaleTimeString()}
 							</div>
 						</div>
 
@@ -272,11 +229,19 @@ const ChatInterface = () => {
 						<Input
 							value={inputValue}
 							onChange={(e) => setInputValue(e.target.value)}
-							onKeyPress={handleKeyPress}
+							onKeyDown={handleKeyPress}
 							placeholder="Ask me anything about my experience..."
 							className="w-full bg-white/10 border-white/20 text-white placeholder:text-gray-400 rounded-2xl px-6 py-4 focus:bg-white/15 focus:border-blue-500/50 backdrop-blur-sm"
 						/>
 					</div>
+					{messages.length !== 0 && (
+						<Button
+							onClick={() => reset()}
+							className="rounded-2xl px-6 py-4 bg-gradient-to-r from-orange-500 to-red-500 hover:from-amber-600 hover:to-yellow-600 transition-all duration-200 hover:scale-105"
+						>
+							Reset
+						</Button>
+					)}
 					<Button
 						onClick={() => handleSend()}
 						disabled={!inputValue.trim() || isTyping}
